@@ -1,0 +1,6 @@
+1 100 100 Place1 Description1
+2 200 200 Place2 Description2
+3 300 300 Place3 Description3
+4 400 400 Place4 Description4
+5 500 200 Place5 Description5
+6 600 100 Place6 Description6
