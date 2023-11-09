@@ -14,7 +14,10 @@ class MainWindow : public QMainWindow {
     void paintEvent(QPaintEvent *);
 
     void updateWeight();
-private slots:
+    void DFS(int i);
+    int getFirstNeighbor(int index);
+    int getNextNeighbor(int i, int w);
+  private slots:
 
     void displayNodeDescription();
     QString getDescription(int nodeIndex) const;
@@ -23,7 +26,10 @@ private slots:
     void clearInputFields();
 
     void displayShortestPath(const std::vector<int> &path);
+    void DFSslot();
   private:
+    std::vector<bool> isVisited;
+    std::vector<bool> edgeisVisited;
     QGraphicsScene* scene;
     std::vector<QRadioButton*> radioButtons;
     std::vector<QPoint> nodeCoordinates;
@@ -36,6 +42,7 @@ private slots:
     QLineEdit *startNodeInput;
     QLineEdit *endNodeInput;
     QVBoxLayout *layout;
+    QLineEdit* dfsInput;
 
     void drawMap();
     void setupUI();

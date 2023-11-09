@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "code.h"
+static int COLOR = 1;
 
 const int INFINITY_DISTANCE = std::numeric_limits<int>::max();
 
@@ -22,9 +23,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
 
     }
-
+    for(int i = 0; i < Code.size(); i++) {
+        isVisited.push_back(false);
+    }
+    for(int i = 0; i < edges.size(); i++) {
+        edgeisVisited.push_back(false);
+    }
     drawMap();
     setupUI();
+    this->setGeometry(100, 200, 900, 700);
 }
 void MainWindow::updateWeight() {
 
@@ -75,7 +82,98 @@ void MainWindow::loadMapData() {
     }
 
 }
+void MainWindow::DFS(int i) {
+    std::cout << Code[i].name.toStdString() << std::endl;
 
+    //将该节点设置为已访问
+    isVisited[i] = true;
+    //查找节点i的第一个邻接节点
+    int w = getFirstNeighbor(i);
+
+    bool flag = true;
+
+
+    //如果存在，进行递归
+    while(w != -1) {
+
+        //如果w节点没有被访问过
+        if(!isVisited[w] ) {
+            flag = false;
+            for (auto& edge : edges) {
+                if (edge.start == i + 1 && edge.end == w + 1) {
+                    edge.color = COLOR;
+                    break;
+                }
+            }
+            for(auto& edge : edges) {
+                if (edge.start == w + 1 && edge.end == i + 1) {
+                    edge.color = COLOR;
+                    break;
+                }
+            }
+            DFS(w);
+        }
+        //如果w节点已经被访问过
+        w = getNextNeighbor(i, w);
+        if(!isVisited[w] && !flag) {
+            COLOR++;
+        }
+        this->repaint();
+    }
+    this->repaint();
+
+}
+int MainWindow::getFirstNeighbor(int index) {
+    int numNodes = nodeCoordinates.size();
+    std::vector<std::vector<int>> distanceMatrix(numNodes, std::vector<int>(numNodes, INFINITY_DISTANCE));
+    for (const auto& edge : edgeData) {
+        int start = std::get<0>(edge) - 1;
+        int end = std::get<1>(edge) - 1;
+        int weight = std::get<2>(edge);
+        distanceMatrix[start][end] = weight;
+        distanceMatrix[end][start] = weight;
+
+    }
+
+    for(int i = 0; i < numNodes; i++) {
+        if(distanceMatrix[index][i] != INFINITY_DISTANCE) {
+            return i;
+        }
+    }
+    return -1;
+}
+int MainWindow::getNextNeighbor(int i, int w) {
+    int numNodes = nodeCoordinates.size();
+    std::vector<std::vector<int>> distanceMatrix(numNodes, std::vector<int>(numNodes, INFINITY_DISTANCE));
+    for (const auto& edge : edgeData) {
+        int start = std::get<0>(edge) - 1;
+        int end = std::get<1>(edge) - 1;
+        int weight = std::get<2>(edge);
+        distanceMatrix[start][end] = weight;
+
+        distanceMatrix[end][start] = weight;
+
+        // Store the predecessor
+    }
+    for(int j = w + 1; j < numNodes; j++) {
+        if(distanceMatrix[i][j] != INFINITY_DISTANCE) {
+            return j;
+        }
+    }
+    return -1;
+}
+void MainWindow::DFSslot() {
+    int i = dfsInput->text().toInt();
+    for(int i = 0; i < Code.size(); i++) {
+        isVisited[i] = false;
+    }
+    dfsInput->clear();
+    clearInputFields();
+    COLOR = 1;
+    if(i > 0 && i <= Code.size()) {
+        DFS(i - 1);
+    }
+}
 void MainWindow::findShortestPath() {
     int startNode = startNodeInput->text().toInt();
     int endNode = endNodeInput->text().toInt();
@@ -223,7 +321,16 @@ void MainWindow::paintEvent(QPaintEvent *) {
             pen.setColor(Qt::gray);
         } else if(color == 1) {
             pen.setColor(Qt::blue);
-        }// Gray line
+        } else if(color == 2) {
+            pen.setColor(Qt::red);
+
+        } else if(color == 3) {
+            pen.setColor(Qt::black);
+        } else if(color == 4) {
+            pen.setColor(Qt::yellow);
+        } else {
+            pen.setColor(Qt::green);
+        }
         painter.setPen(pen);
         painter.drawLine(startPoint.x() + 7, startPoint.y() + 7, endPoint.x() + 7, endPoint.y() + 7);
 
@@ -278,6 +385,13 @@ void MainWindow::drawMap() {
     connect(clearButton, &QPushButton::clicked, this, &MainWindow::clearInputFields);
 
     clearButton->setGeometry(700, 20, 80, 30);
+
+    QPushButton *dfsButton = new QPushButton("遍历", this);
+    connect(dfsButton, &QPushButton::clicked, this, &MainWindow::DFSslot);
+    dfsButton->setGeometry(500, 400, 50, 20);
+    dfsInput = new QLineEdit(this);
+    dfsInput->setGeometry(600, 400, 50, 20);
+
 }
 
 void MainWindow::setupUI() {
