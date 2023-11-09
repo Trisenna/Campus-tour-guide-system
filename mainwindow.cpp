@@ -26,7 +26,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     drawMap();
     setupUI();
 }
+void MainWindow::updateWeight() {
 
+
+    edgeData.clear();
+    edges.clear();
+
+
+    QString edgeFilePath = QFileDialog::getOpenFileName(this, "Choose Edge File", "", "Text Files (*.txt)");
+
+    if (!edgeFilePath.isEmpty()) {
+
+        // Read data from Edge.txt
+        readEdgeFile(edgeFilePath);
+
+
+    }
+    this->repaint();
+
+
+
+}
 void MainWindow::displayNodeDescription() {
     QString str = static_cast<QString>(this->sender()->objectName());
     qDebug() << str;
@@ -53,11 +73,18 @@ void MainWindow::loadMapData() {
 
 
     }
+
 }
 
 void MainWindow::findShortestPath() {
     int startNode = startNodeInput->text().toInt();
     int endNode = endNodeInput->text().toInt();
+    if(startNode > endNode) {
+        int tem = 0;
+        tem = startNode;
+        startNode = endNode;
+        endNode = tem;
+    }
     startNodeInput->clear();
     endNodeInput->clear();
 
@@ -79,26 +106,30 @@ void MainWindow::findShortestPath() {
         int end = std::get<1>(edge) - 1;
         int weight = std::get<2>(edge);
         distanceMatrix[start][end] = weight;
-        predecessor[start][end] = start;  // Store the predecessor
+
+        predecessor[start][end] = start;
+
+        // Store the predecessor
     }
-    for (int i = 0; i < numNodes; i++) {
-        for (int j = 0; j < numNodes; j++) {
-            qDebug() << distanceMatrix[i][j];
-        }
-        qDebug() << "\n";
-    }
-    for (int i = 0; i < numNodes; i++) {
-        for (int j = 0; j < numNodes; j++) {
-            qDebug() << predecessor[i][j];
-        }
-        qDebug() << "\n";
-    }
+//    for (int i = 0; i < numNodes; i++) {
+//        for (int j = 0; j < numNodes; j++) {
+//            qDebug() << distanceMatrix[i][j];
+//        }
+//        qDebug() << "\n";
+//    }
+//    for (int i = 0; i < numNodes; i++) {
+//        for (int j = 0; j < numNodes; j++) {
+//            qDebug() << predecessor[i][j];
+//        }
+//        qDebug() << "\n";
+//    }
     //找到两点间的最短路径并将路径记录下来
     for (int k = 0; k < numNodes; k++) {
         for (int i = 0; i < numNodes; i++) {
             for (int j = 0; j < numNodes; j++) {
                 if (distanceMatrix[i][k] != INFINITY_DISTANCE && distanceMatrix[k][j] != INFINITY_DISTANCE && distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
                     distanceMatrix[i][j] = distanceMatrix[i][k] + distanceMatrix[k][j]; // Update the distance
+
                     predecessor[i][j] = predecessor[k][j]; // Update the predecessor
                 }
             }
@@ -213,7 +244,7 @@ void MainWindow::drawMap() {
     QPushButton* locate[Code.size()];
 
     for(int i = 1; i <= Code.size(); i++) {
-
+        std::cout << "fdsfdsf";
         locate[i - 1] = new QPushButton(this);
         QString tem;
         tem = Code[i - 1].name;
@@ -252,7 +283,7 @@ void MainWindow::drawMap() {
 void MainWindow::setupUI() {
     this->setGeometry(100, 200, 600, 600);
     auto loadMapButton = new QPushButton("Load Map Data", this);
-    connect(loadMapButton, &QPushButton::clicked, this, &MainWindow::loadMapData);
+    connect(loadMapButton, &QPushButton::clicked, this, &MainWindow::updateWeight);
 
 
     loadMapButton->setGeometry(10, 20, 150, 30);

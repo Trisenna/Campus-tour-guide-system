@@ -13,7 +13,8 @@ class MainWindow : public QMainWindow {
 
     void paintEvent(QPaintEvent *);
 
-  private slots:
+    void updateWeight();
+private slots:
 
     void displayNodeDescription();
     QString getDescription(int nodeIndex) const;
