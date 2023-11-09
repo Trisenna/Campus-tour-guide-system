@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
+#include <iostream>
 
 #include "code.h"
 
@@ -57,7 +58,18 @@ void MainWindow::loadMapData() {
 void MainWindow::findShortestPath() {
     int startNode = startNodeInput->text().toInt();
     int endNode = endNodeInput->text().toInt();
+    startNodeInput->clear();
+    endNodeInput->clear();
 
+    // Set all lines to gray color
+    for ( auto& edge : edges) {
+
+
+        edge.color = 0;
+        this->repaint();
+        // Assuming weight is stored in the third element
+
+    }
     int numNodes = nodeCoordinates.size();
     std::vector<std::vector<int>> distanceMatrix(numNodes, std::vector<int>(numNodes, INFINITY_DISTANCE));
     std::vector<std::vector<int>> predecessor(numNodes, std::vector<int>(numNodes, -1));
@@ -69,35 +81,60 @@ void MainWindow::findShortestPath() {
         distanceMatrix[start][end] = weight;
         predecessor[start][end] = start;  // Store the predecessor
     }
-
-    for (int k = 0; k < numNodes; ++k) {
-        for (int i = 0; i < numNodes; ++i) {
-            for (int j = 0; j < numNodes; ++j) {
-                if (distanceMatrix[i][k] != INFINITY_DISTANCE &&
-                        distanceMatrix[k][j] != INFINITY_DISTANCE &&
-                        distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
-                    distanceMatrix[i][j] = distanceMatrix[i][k] + distanceMatrix[k][j];
-                    predecessor[i][j] = predecessor[k][j];  // Update the predecessor
+    for (int i = 0; i < numNodes; i++) {
+        for (int j = 0; j < numNodes; j++) {
+            qDebug() << distanceMatrix[i][j];
+        }
+        qDebug() << "\n";
+    }
+    for (int i = 0; i < numNodes; i++) {
+        for (int j = 0; j < numNodes; j++) {
+            qDebug() << predecessor[i][j];
+        }
+        qDebug() << "\n";
+    }
+    //找到两点间的最短路径并将路径记录下来
+    for (int k = 0; k < numNodes; k++) {
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (distanceMatrix[i][k] != INFINITY_DISTANCE && distanceMatrix[k][j] != INFINITY_DISTANCE && distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
+                    distanceMatrix[i][j] = distanceMatrix[i][k] + distanceMatrix[k][j]; // Update the distance
+                    predecessor[i][j] = predecessor[k][j]; // Update the predecessor
                 }
             }
         }
     }
-
-    // Reconstruct the shortest path
-    std::vector<int> path;
-    int currentNode = endNode - 1;
-    while (currentNode != -1 && currentNode != startNode - 1) {
-        path.push_back(currentNode);
-        currentNode = predecessor[startNode - 1][currentNode];
-
+    for (int i = 0; i < numNodes; i++) {
+        for (int j = 0; j < numNodes; j++) {
+            qDebug() << predecessor[i][j];
+        }
+        qDebug() << "\n";
     }
-    path.push_back(startNode - 1);
+    // Find the shortest path from startNode to endNode
+    std::vector<int> path;
 
-    // Reverse the path to get the correct order
-    std::reverse(path.begin(), path.end());
+    int current = endNode - 1;
+    while (current != -1) {
+        path.push_back(current ); // Add the node to the path
+        current = predecessor[startNode - 1][current]; // Move to the predecessor
+    }
+    std::reverse(path.begin(), path.end()); // Reverse the path
+    for(int i = 0; i < path.size(); i++) {
+        qDebug() << path[i] ;
+    }
+    // Set the color of the edges on the shortest path to red
+    for (int i = 0; i < path.size() - 1; i++) {
+        int start = path[i] + 1;
+        int end = path[i + 1] + 1;
+        for (auto& edge : edges) {
+            if (edge.start == start && edge.end == end) {
+                edge.color = 1; // Red color
+                break;
+            }
+        }
+    }
+    this->repaint(); // Repaint the window
 
-    // Display the shortest path
-    displayShortestPath(path);
 }
 
 void MainWindow::displayShortestPath(const std::vector<int>& path) {
@@ -122,8 +159,13 @@ void MainWindow::clearInputFields() {
     endNodeInput->clear();
 
     // Set all lines to gray color
-    for (const auto& line : lines) {
-        line->setPen(QPen(Qt::gray));
+    for ( auto& edge : edges) {
+
+
+        edge.color = 0;
+        this->repaint();
+        // Assuming weight is stored in the third element
+
     }
 
     // Update UI
@@ -212,10 +254,9 @@ void MainWindow::setupUI() {
     auto loadMapButton = new QPushButton("Load Map Data", this);
     connect(loadMapButton, &QPushButton::clicked, this, &MainWindow::loadMapData);
 
-    auto findPathButton = new QPushButton("Find Shortest Path", this);
 
     loadMapButton->setGeometry(10, 20, 150, 30);
-    findPathButton->setGeometry(200, 20, 150, 30);
+
     scene = new QGraphicsScene(this);
     this->setGeometry(100, 200, 600, 800);
 
