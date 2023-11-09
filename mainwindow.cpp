@@ -238,9 +238,9 @@ void MainWindow::drawMap() {
     QPushButton *findShortestPathButton = new QPushButton("Find Shortest Path", this);
     connect(findShortestPathButton, &QPushButton::clicked, this, &MainWindow::findShortestPath);
 
-    startNodeInput->setGeometry(400, 500, 50, 20);
-    endNodeInput->setGeometry(500, 500, 50, 20);
-    findShortestPathButton->setGeometry(400, 530, 150, 30);
+    startNodeInput->setGeometry(500, 500, 50, 20);
+    endNodeInput->setGeometry(600, 500, 50, 20);
+    findShortestPathButton->setGeometry(500, 530, 150, 30);
 
     // Draw clear button
     QPushButton *clearButton = new QPushButton("Clear", this);
