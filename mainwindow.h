@@ -20,8 +20,9 @@ class MainWindow : public QMainWindow {
     void addEdge();
     void writeToFile(const QString &content);
     void deleteEdge();
-private slots:
 
+  private slots:
+    void findMinimumSpanningTree();
     void displayNodeDescription();
     QString getDescription(int nodeIndex) const;
     void loadMapData();

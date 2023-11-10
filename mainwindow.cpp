@@ -5,9 +5,11 @@
 #include <QPainter>
 #include <iostream>
 #include <thread>
+#include <iterator>
 
 #include "code.h"
 #include "dialog.h"
+#include <bits/stl_pair.h>
 static int COLOR = 1;
 
 const int INFINITY_DISTANCE = std::numeric_limits<int>::max();
@@ -111,13 +113,13 @@ void MainWindow::DFS(int i) {
             flag = false;
             for (auto& edge : edges) {
                 if (edge.start == i + 1 && edge.end == w + 1) {
-                    edge.color = COLOR;
+                    edge.color = COLOR % 5 + 1;
                     break;
                 }
             }
             for(auto& edge : edges) {
                 if (edge.start == w + 1 && edge.end == i + 1) {
-                    edge.color = COLOR;
+                    edge.color = COLOR % 5 + 1;
                     break;
                 }
             }
@@ -326,47 +328,43 @@ void MainWindow::paintEvent(QPaintEvent *) {
     for (const auto& edge : edges) {
         int startNode = edge.start;
         int endNode = edge.end;
-        int color = edge.color;
-        QPoint startPoint = nodeCoordinates[startNode - 1];
-        QPoint endPoint = nodeCoordinates[endNode - 1];
+        if(startNode != endNode) {
+            int color = edge.color;
+            QPoint startPoint = nodeCoordinates[startNode - 1];
+            QPoint endPoint = nodeCoordinates[endNode - 1];
 
-        // Draw line
-        QPen pen;
-        pen.setWidth(5);
-        if(color == 0) {
-            pen.setColor(Qt::gray);
-        } else if(color == 1) {
-            pen.setColor(Qt::blue);
-        } else if(color == 2) {
-            pen.setColor(Qt::red);
-        } else if(color == 3) {
-            pen.setColor(Qt::black);
-        } else if(color == 4) {
-            pen.setColor(Qt::yellow);
-        } else if(color == 5) {
-            pen.setColor(Qt::green);
-        } else {
-            QColor colors;
+            // Draw line
+            QPen pen;
+            pen.setWidth(5);
+            if(color == 0) {
+                pen.setColor(Qt::gray);
+            } else if(color == 1) {
+                pen.setColor(Qt::blue);
+            } else if(color == 2) {
+                pen.setColor(Qt::red);
+            } else if(color == 3) {
+                pen.setColor(Qt::black);
+            } else if(color == 4) {
+                pen.setColor(Qt::yellow);
+            } else if(color == 5) {
+                pen.setColor(Qt::green);
+            }
+            painter.setPen(pen);
+            painter.drawLine(startPoint.x() + 7, startPoint.y() + 7, endPoint.x() + 7, endPoint.y() + 7);
 
-            colors.setRgb(color, 250 / 2 * color, 255 / color, 255 - color);
-            pen.setColor(colors);
+            // Display weight
+            pen.setColor("Purple");
+            painter.setPen(pen);
+            painter.drawText((startPoint + endPoint) / 2, QString::number(edge.weight));
+
+            // Save line for future reference
+            lines.push_back(new QGraphicsLineItem(startPoint.x() + 7, startPoint.y() + 7, endPoint.x() + 7, endPoint.y() + 7));
 
         }
-        painter.setPen(pen);
-        painter.drawLine(startPoint.x() + 7, startPoint.y() + 7, endPoint.x() + 7, endPoint.y() + 7);
-
-        // Display weight
-        pen.setColor("Purple");
-        painter.setPen(pen);
-        painter.drawText((startPoint + endPoint) / 2, QString::number(edge.weight));
-
-        // Save line for future reference
-        lines.push_back(new QGraphicsLineItem(startPoint.x() + 7, startPoint.y() + 7, endPoint.x() + 7, endPoint.y() + 7));
-
     }
-
     // Don't forget to end the QPainter
     painter.end();
+
 }
 void MainWindow::drawMap() {
     QPushButton* locate[Code.size()];
@@ -421,6 +419,9 @@ void MainWindow::drawMap() {
     connect(deleteButton, &QPushButton::clicked, this, &MainWindow::deleteEdge);
     deleteButton->setGeometry(550, 300, 100, 20);
 
+    QPushButton* minTree = new QPushButton("minTree", this);
+    connect(minTree, &QPushButton::clicked, this, &MainWindow::findMinimumSpanningTree);
+    minTree->setGeometry(500, 450, 80, 20);
 }
 
 void MainWindow::setupUI() {
@@ -595,4 +596,76 @@ void MainWindow::readEdgeFile(const QString& filePath) {
     }
 
 }
+void MainWindow::findMinimumSpanningTree() {
+    int numNodes = nodeCoordinates.size();
+    std::vector<std::vector<int>> distanceMatrix(numNodes, std::vector<int>(numNodes, INFINITY_DISTANCE));
+    bool isVisited[numNodes];
+    for(int i = 0; i < numNodes; i++) {
+        isVisited[i] = false;
+    }
+    //矩阵
+    for (const auto& edge : edges) {
+        int start = edge.start - 1;
+        int end = edge.end - 1;
+        int weight = edge.weight;
+        if(start != end) {
+            distanceMatrix[start][end] = weight;
+
+            distanceMatrix[end][start] = weight;
+        }
+
+        // Store the predecessor
+    }
+    for (int i = 0; i < numNodes; i++) {
+        for (int j = 0; j < numNodes; j++) {
+            std::cout << distanceMatrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    //设置开始位置为0
+    int start = 0;
+    int minEdge = INFINITY_DISTANCE;
+    int nextNode = 0;
+    int preNode = 0;
+
+    std::vector<Edge> minEdges;
+    std::vector<int> min;
+    min.push_back(start);
+    isVisited[start] = true;
+    for(int i = 0; i < numNodes - 1; i++) {
+        int m = min.size();
+        for(int j = 0; j < m; j++) {
+            int c = min[j];
+            for(int k = 0; k < numNodes; k++) {
+                if( distanceMatrix[c][k] != INFINITY_DISTANCE && minEdge > distanceMatrix[c][k] && !isVisited[k]) {
+                    minEdge = distanceMatrix[c][k];
+                    nextNode = k;
+                    preNode = c;
+                }
+            }
+        }
+        isVisited[nextNode] = true;
+        min.push_back(nextNode);
+        minEdges.push_back(Edge(preNode, nextNode));
+        minEdge = INFINITY_DISTANCE;
+        nextNode = 0;
+        preNode = 0;
+    }
+    std::vector<Edge>::iterator it;
+    for(it = minEdges.begin(); it != minEdges.end(); it++) {
+
+        int a = it->start;
+        int b = it->end;
+        qDebug() << a << " " << b;
+        for(auto& edge : edges) {
+            if((edge.start == a + 1 && edge.end == b + 1) || (edge.end == a + 1 && edge.start == b + 1)) {
+
+                edge.color = 1;
+            }
+        }
+    }
+    this->repaint();
+
+}
+
 

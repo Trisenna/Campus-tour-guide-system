@@ -15,6 +15,7 @@ class code {
         this->name = name;
         this->description = des;
     }
+
     int x;
     int y;
     int index;

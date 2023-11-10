@@ -11,6 +11,10 @@ class Edge {
         weight = z;
         color = d;
     }
+    Edge(int start, int end) {
+        this->start = start;
+        this->end = end;
+    }
     int start;
     int end;
     int weight;
