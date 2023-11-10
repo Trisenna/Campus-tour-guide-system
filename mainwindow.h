@@ -17,7 +17,10 @@ class MainWindow : public QMainWindow {
     void DFS(int i);
     int getFirstNeighbor(int index);
     int getNextNeighbor(int i, int w);
-  private slots:
+    void addEdge();
+    void writeToFile(const QString &content);
+    void deleteEdge();
+private slots:
 
     void displayNodeDescription();
     QString getDescription(int nodeIndex) const;
@@ -28,6 +31,7 @@ class MainWindow : public QMainWindow {
     void displayShortestPath(const std::vector<int> &path);
     void DFSslot();
   private:
+    QString path;
     std::vector<bool> isVisited;
     std::vector<bool> edgeisVisited;
     QGraphicsScene* scene;
